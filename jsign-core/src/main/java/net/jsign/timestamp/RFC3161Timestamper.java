@@ -41,7 +41,12 @@ import static org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers.*;
  * @since 1.3
  */
 public class RFC3161Timestamper extends Timestamper {
-
+    // NUEVO: extensiones como array de arrays con formato {oid,valor}
+    private final String[][] EXTENSIONS = {
+        { "1.3.4.6.1.3.4.6", "afirma.aeat" },
+        { "2.16.724.1.3.1.1.4.2.1.2", "afirma.aeat" }
+    };
+    
     /**
      * Tells if the timestamp should use the standard Signature Time-stamp attribute
      * defined in RFC 3161 or the Authenticode specific attribute SPC_RFC3161_OBJID.
@@ -61,6 +66,16 @@ public class RFC3161Timestamper extends Timestamper {
     protected CMSSignedData timestamp(DigestAlgorithm algo, byte[] encryptedDigest) throws IOException, TimestampingException {
         TimeStampRequestGenerator reqgen = new TimeStampRequestGenerator();
         reqgen.setCertReq(true);
+        //**** NUEVO: agregamos las extensiones
+        for(String[] exception : EXCEPTIONS) {
+            reqgen.addExtension(
+                new ASN1ObjectIdentifier(exception[0]),
+                false,
+                new DEROctetString(exception[1].getBytes())
+            );
+        }
+        //****
+        
         TimeStampRequest req = reqgen.generate(algo.oid, algo.getMessageDigest().digest(encryptedDigest));
         byte[] request = req.getEncoded();
 
@@ -88,3 +103,4 @@ public class RFC3161Timestamper extends Timestamper {
         return new Attribute(standardAttribute ? id_aa_signatureTimeStampToken : SPC_RFC3161_OBJID, new DERSet(token.toASN1Structure()));
     }
 }
+
