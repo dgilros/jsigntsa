@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bouncycastle.asn1.DERSet;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;     // NUEVO
+import org.bouncycastle.asn1.DEROctetString;           // NUEVO
 import org.bouncycastle.asn1.cms.Attribute;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSSignedData;
@@ -67,11 +69,11 @@ public class RFC3161Timestamper extends Timestamper {
         TimeStampRequestGenerator reqgen = new TimeStampRequestGenerator();
         reqgen.setCertReq(true);
         //**** NUEVO: agregamos las extensiones
-        for(String[] exception : EXCEPTIONS) {
+        for(String[] ext : EXTENSIONS) {
             reqgen.addExtension(
-                new ASN1ObjectIdentifier(exception[0]),
+                new ASN1ObjectIdentifier(ext[0]),
                 false,
-                new DEROctetString(exception[1].getBytes())
+                new DEROctetString(ext[1].getBytes())
             );
         }
         //****
@@ -103,4 +105,5 @@ public class RFC3161Timestamper extends Timestamper {
         return new Attribute(standardAttribute ? id_aa_signatureTimeStampToken : SPC_RFC3161_OBJID, new DERSet(token.toASN1Structure()));
     }
 }
+
 
